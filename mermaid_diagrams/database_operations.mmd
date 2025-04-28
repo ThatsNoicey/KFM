@@ -1,0 +1,13 @@
+
+    flowchart TD
+        %% Define styles
+        classDef db fill:#9ff,stroke:#333,stroke-width:2px;
+
+        %% Database Operations
+        A[SQLite Database]:::db --> B[Store Session Data]
+        A --> C[Retrieve Session Data]
+
+        %% Data Flow
+        B --> D[Session Table]
+        C --> D
+    

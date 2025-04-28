@@ -1,0 +1,30 @@
+Patient Name: John Smith
+NHS Number: 123 456 7890
+Assessed Knee: Left
+Report Generated: 2025-03-26 14:08:37
+
+Exercise Session Summary:
+Total Sessions: 10
+-------------------------
+| Time            | Hold (s) | Max Angle | Score |
+|-----------------|----------|-----------|-------|
+| 2025-03-26 14:06:31 |      7.0 |      51.4 | 361.4 |
+| 2025-03-26 14:06:49 |     12.6 |      50.8 | 640.9 |
+| 2025-03-26 14:07:02 |      8.1 |      65.7 | 534.9 |
+| 2025-03-26 14:07:22 |     14.5 |      69.1 | 1004.5 |
+| 2025-03-26 14:07:35 |      7.9 |      62.2 | 490.2 |
+| 2025-03-26 14:07:44 |      4.0 |      63.2 | 253.6 |
+| 2025-03-26 14:07:55 |      7.3 |      52.7 | 383.7 |
+| 2025-03-26 14:08:04 |      3.7 |      42.9 | 158.4 |
+| 2025-03-26 14:08:23 |     12.5 |      67.9 | 848.3 |
+| 2025-03-26 14:08:34 |      5.7 |      58.2 | 330.9 |
+
+Averages:
+- Hold Time: 8.3s
+- Max Angle: 58.4°
+- Average Score: 500.7
+
+Device Disclaimer:
+Data collected by the FlexTrack Pro system. Manufacturer is not liable
+for clinical decisions made using this output. Verify critical values
+with manual assessment.

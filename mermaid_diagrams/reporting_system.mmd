@@ -1,0 +1,18 @@
+
+    flowchart TD
+        %% Define styles
+        classDef reporting fill:#f99,stroke:#333,stroke-width:2px;
+        classDef db fill:#9ff,stroke:#333,stroke-width:2px;
+
+        %% Reporting System
+        A[Reporting System]:::reporting --> B[Generate KFMS Plot]
+        A --> C[Create PDF Report]
+        A --> D[Email Report]
+
+        %% Data Flow
+        B --> E[Retrieve Data from Database]:::db
+        C --> F[Include KFMS Plot]
+        C --> G[Include Session Data Table]
+        C --> H[Include Averages]
+        D --> I[Attach PDF Report]
+    

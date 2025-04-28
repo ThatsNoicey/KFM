@@ -1,0 +1,23 @@
+
+    '''flowchart TD
+        %% Define styles
+        classDef ble fill:#ff9,stroke:#333,stroke-width:2px;
+        classDef data fill:#9ff,stroke:#333,stroke-width:2px;
+
+        %% BLE Communication
+        A[BLE Communication]:::ble --> B[Connect to BLE Device]
+        A --> C[Setup Notifications]
+        C --> D[Angle Callback]
+        C --> E[Max Angle Callback]
+        C --> F[Hold Time Callback]
+
+        %% Data Processing
+        D --> G[Process Angle Data]:::data
+        E --> H[Process Max Angle Data]:::data
+        F --> I[Process Hold Time Data]:::data
+
+        %% Data Flow
+        G --> J[Update Session]
+        H --> J
+        I --> J'''
+    

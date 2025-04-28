@@ -1,0 +1,21 @@
+
+    flowchart TD
+        %% Define styles
+        classDef core fill:#f9f,stroke:#333,stroke-width:2px;
+        classDef db fill:#9ff,stroke:#333,stroke-width:2px;
+
+        %% Session Management
+        A[Session Management]:::core --> B[Start New Session]
+        A --> C[Update Session]
+        A --> D[Finalize Session]
+        A --> E[Session History]
+
+        %% Data Flow
+        B --> F[Initialize Session Data]
+        C --> G[Update Live Angles]
+        D --> H[Calculate Metrics]
+        H --> I[Stability Index]
+        H --> J[KFMS Score]
+        D --> K[Store Session Data]:::db
+        E --> K
+    

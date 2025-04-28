@@ -1,0 +1,32 @@
+Knee Flexion Monitor Report
+===========================
+Generated: 2025-03-29 16:05:10
+
+Clinical Interpretation Guide:
+------------------------------
+| KFMS Range | Classification      | Rehabilitation Stage     |
+|------------|---------------------|--------------------------|
+| 0-39       | High Risk           | Immediate Intervention   |
+| 40-59      | Limited Efficacy    | Focused Training         |
+| 60-79      | Functional Recovery | Strengthening Program    |
+| 80-100     | Optimal Performance | Maintenance Protocol     |
+
+Session Data:
+-------------
+| Timestamp           | Hold Time | Max Angle | KFMS  | Stability |
+|---------------------|-----------|-----------|-------|-----------|
+| 2025-03-29T16:04:39.950421 |      1.7s |      48.6° |  38.6 |     0.775 |
+| 2025-03-29T16:04:44.090932 |      4.7s |     102.0° |  63.8 |     0.543 |
+| 2025-03-29T16:04:50.447710 |      7.2s |      91.2° |  71.9 |     0.632 |
+| 2025-03-29T16:04:58.727842 |     10.6s |      95.2° |  38.4 |     0.777 |
+
+Averages:
+Hold Time: 6.1s
+Max Angle: 84.2°
+KFMS: 53.2
+Stability: 0.682
+
+LEGAL DISCLAIMER:
+The Knee Flexion Monitor (KFM) system is for informational purposes only.
+It is not a medical device. Consult a healthcare professional for medical advice.
+No liability is assumed for use or interpretation of this data.

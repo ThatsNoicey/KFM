@@ -1,0 +1,45 @@
+flowchart TD
+    %% Define styles
+    classDef core fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef ble fill:#ff9,stroke:#333,stroke-width:2px;
+    classDef flask fill:#9f9,stroke:#333,stroke-width:2px;
+    classDef db fill:#9ff,stroke:#333,stroke-width:2px;
+    classDef reporting fill:#f99,stroke:#333,stroke-width:2px;
+
+    %% Core System
+    A[Main System Loop]:::core --> B[BLE Communication]:::ble
+    A --> C[Flask Web Server]:::flask
+    A --> D[Session Management]:::core
+    A --> E[Reporting System]:::reporting
+
+    %% BLE Communication
+    B --> B1[Connect to BLE Device]
+    B --> B2[Setup Notifications]
+    B2 --> B3[Angle Callback]
+    B2 --> B4[Max Angle Callback]
+    B2 --> B5[Hold Time Callback]
+
+    %% Flask Web Server
+    C --> C1[Dashboard Endpoint]
+    C --> C2[Real-Time Data Endpoint]
+    C --> C3[Game 1 (Rocket Game)]
+    C --> C4[Game 2 (Car Game)]
+    C --> C5[Setup Endpoint]
+    C --> C6[Shutdown Endpoint]
+    C --> C7[Prescribed Exercises Endpoint]
+
+    %% Session Management
+    D --> D1[Start New Session]
+    D --> D2[Update Session]
+    D --> D3[Finalize Session]
+    D --> D4[Session History]
+
+    %% Reporting System
+    E --> E1[Generate KFMS Plot]
+    E --> E2[Create PDF Report]
+    E --> E3[Email Report]
+
+    %% Database Operations
+    D4 --> F[SQLite Database]:::db
+    F --> F1[Store Session Data]
+    F --> F2[Retrieve Session Data]

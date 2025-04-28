@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/static/logofavicon.png" type="image/png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Medical KFM Monitor</title>
+  <style>
+    :root {
+      --primary: #2A9D8F;
+      --secondary: #264653;
+      --alert: #E76F51;
+      --background: #F8F9FA;
+      --text: #2B2D42;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      font-family: 'Roboto', sans-serif;
+      transition: background 0.5s ease;
+    }
+
+    .alert-background {
+      background: linear-gradient(45deg, rgba(231,111,81,0.1) 0%, transparent 100%);
+    }
+
+    .alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--alert);
+      opacity: 0;
+      animation: pulse 500ms infinite;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.1; }
+    }
+
+    /* Modal styles for the opening patient name screen */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .modal-content input {
+      width: 80%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .modal-content button {
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 0.5rem;
+    }
+    
+    .status-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .status-panel {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+      }
+    }
+
+    .status-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .progress-ring-circle {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    /* Marker style for threshold indicators */
+    .threshold-marker {
+      stroke: red;
+      stroke-width: 4;
+    }
+
+    /* Hold time marker always in black */
+    .hold-marker {
+      stroke: black;
+      stroke-width: 4;
+      transition: transform 0.5s ease-out;
+    }
+
+    .ring-labels {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .current-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .metric-label {
+      font-size: 1.1rem;
+      color: var(--secondary);
+      opacity: 0.8;
+    }
+
+    .session-table {
+      max-height: 50vh;
+      overflow-y: auto;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      margin: 2rem auto;
+      width: 90%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+
+    .exercise-selector {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 2rem;
+      border: none;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    
+    /* Custom threshold indicator text if patient name is 'test' */
+    .custom-threshold-info {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--alert);
+      margin-bottom: 1rem;
+    }
+
+    .setup-overlay {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(5px);
+    }
+
+    .setup-card {
+        background: var(--background);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .setup-header {
+        font-size: 1.8rem;
+        color: var(--secondary);
+        margin-bottom: 2rem;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .position-toggle {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        justify-content: center;
+    }
+
+    .position-option {
+        flex: 1;
+        padding: 1.2rem;
+        border-radius: 1rem;
+        background: white;
+        border: 2px solid #eee;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-weight: 500;
+        color: var(--secondary);
+    }
+
+    .position-option.active {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 5px 15px rgba(42,157,143,0.2);
+    }
+
+    .threshold-control {
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .threshold-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #eee;
+        outline: none;
+        margin: 1rem 0;
+    }
+
+    .threshold-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        cursor: pointer;
+        border: 4px solid white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .threshold-value {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.8rem;
+        font-weight: 600;
+        color: var(--secondary);
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .threshold-value:hover {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+    }
+
+    .threshold-value input {
+        width: 60px;
+        border: none;
+        background: transparent;
+        font: inherit;
+        color: inherit;
+        text-align: center;
+        display: none;
+    }
+    .gold-range {
+      stroke-width: 18; 
+      opacity: 0.3;
+      filter: drop-shadow(0 0 5px rgba(208, 255, 0, 0.783));
+      stroke-linecap: round;
+    }
+
+    .progress-ring {
+      position: relative;
+      z-index: 1;
+    }
+    .position-toggle {
+        display: flex;
+        gap: 2rem;
+        margin: 2rem 0;
+        position: relative;
+        justify-content: center; 
+        align-items: center;
+    }
+
+    .position-option {
+        position: relative;
+        padding: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .position-option img {
+        width: 80px;
+        height: 80px;
+        display: block;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .selection-outline {
+        position: absolute;
+        border: 2px solid #000;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+    .exercise-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1500;
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: 'Roboto', sans-serif;
+    }
+
+    .exercise-panel.active {
+      transform: translateX(0);
+    }
+
+    .close-exercise-panel {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      color: var(--secondary);
+    }
+
+    .exercise-panel h3 {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    .exercise-option {
+      display: block; /* Make the <a> tag behave like a block element */
+      text-decoration: none; /* Remove underline from links */
+      border: 1px solid #eee;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      background: white; /* Add a background color */
+      text-align: center; /* Center-align the text */
+      color: var(--secondary); /* Use the secondary color for text */
+    }
+      
+    .exercise-option:hover {
+      background: var(--background);
+    }
+
+    .exercise-option h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--secondary);
+    }
+
+    .exercise-option p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .prescribed-controls {
+      margin-top: 0.5rem;
+    }
+
+    .prescribed-controls label {
+      font-size: 0.85rem;
+      color: var(--secondary);
+    }
+
+    .prescribed-controls input {
+      width: 60px;
+      padding: 0.2rem;
+      margin-right: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 0.3rem;
+    }
+
+    .prescribed-controls button {
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    #bt-warning {
+        position: fixed; /* Ensure it stays in the viewport */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px; /* Larger font size for emphasis */
+        color: blue; /* Blue text color */
+        font-weight: bold;
+        text-align: center;
+        display: none; /* Hidden by default */
+        z-index: 2000; /* Ensure it appears above everything else */
+        background: rgba(255, 255, 255, 0.8); 
+        padding: 20px; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
+    }
+      </style>
+</head>
+<body>
+  <!-- Alert overlay for vibration and visual feedback -->
+  <div id="alert-overlay" class="alert-overlay"></div>
+  <div id="bt-warning" class="alert-overlay"> No Bluetooth </div>
+  
+  <!-- Modal for entering patient name -->
+  <div id="patient-modal" class="modal">
+    <div class="modal-content">
+        <h2>Enter Patient Info</h2>
+        <input type="text" id="patient-name" placeholder="Patient Name" />
+        <br />
+        <label for="threshold-input">Threshold (°):</label>
+        <input type="number" id="threshold-input" value="30" min="0" max="180" />
+        <br /><br />
+        <label>Position:</label>
+        <div class="position-toggle" id="position-toggle">
+          <div class="position-option" data-value="sitting">
+              <img src="static/sitting.png" alt="Sitting Position">
+          </div>
+          <div class="position-option" data-value="lying">
+              <img src="static/lying.png" alt="Lying Position">
+          </div>
+          <div class="selection-outline"></div>
+        </div>
+        <br /><br />
+        <button id="start-btn">Start</button>        
+    </div>
+  </div>
+  
+  <!-- Optional custom threshold info (shown only if patient name is "test") -->
+  <div id="custom-threshold-info" class="custom-threshold-info" style="display:none;">
+    <img src="static/logo.png" alt="Logo" style="height: 90px; vertical-align: middle; margin-right: 40px;" />
+    <strong>Custom Threshold:</strong> 30° (suggested)
+  </div>
+  
+  <!-- Main status panel -->
+  <div class="status-panel">
+    <!-- Current Angle Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="current-ring">
+          <circle class="gold-range" stroke="#4169E1" stroke-width="18" fill="none" 
+              r="90" cx="100" cy="100" 
+              stroke-dasharray="31.4 534.08"  
+              stroke-dashoffset="-267.76" />
+          <!-- Background circle -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Foreground progress circle -->
+          <circle class="progress-ring-circle" stroke="var(--primary)" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Threshold marker at 135° -->
+          <line class="threshold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(315, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="current-angle">0°</div>
+          <div class="metric-label">Current Angle</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Max Angle Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="max-ring">
+          <!-- Background circle -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Foreground progress circle -->
+          <circle class="progress-ring-circle" stroke="var(--secondary)" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Threshold marker at 135° -->
+          <line class="threshold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(135, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="max-angle">0°</div>
+          <div class="metric-label">Max Angle</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hold Time Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="hold-ring">
+          <!-- Background circle in light grey -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Hold time ring is permanently black; no progress update needed -->
+          <circle class="progress-ring-circle" stroke="black" stroke-width="8" r="90" cx="100" cy="100" fill="none" />
+          <!-- Rotating hold time marker; initially at 0 degrees -->
+          <line class="hold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(0, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="hold-time">0s</div>
+          <div class="metric-label">Hold Time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Session history table -->
+  <div class="session-table">
+    <table>
+      <thead>
+        <tr>
+          <th>TIME</th>
+          <th>MAX°</th>
+          <th>HOLD</th>
+          <th>STABILITY</th>
+          <th>KFMS</th>
+        </tr>
+      </thead>
+      <tbody id="session-history">
+        <!-- Data will populate here -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Exercise selector button -->
+  <button class="exercise-selector">EXERCISE TYPE ▾</button>
+
+  <!-- End Session Button -->
+    <button id="end-session-btn" style="
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    background: var(--alert);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 2rem;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 1000;
+    ">
+    END SESSION
+    </button>
+    <!-- Exercise Panel (Slide-In UI) -->
+<div id="exercise-panel" class="exercise-panel">
+  <button id="close-exercise-panel" class="close-exercise-panel">&times;</button>
+  <h3>Exercises &amp; Games</h3>
+  <div id="exercise-options">
+    <!-- Option 1: Angle Hold Challenge -->
+    <a href="/game-1" class="exercise-option" data-exercise="angle-hold">
+      <h4>🚀 Rocket Launch Game</h4>
+      <p>Hold 90° to charge engines!<br>Return to 0° for liftoff</p>
+    </a>
+    <!-- Option 2: Target Angle Match -->
+    <a href="/game-2" class="exercise-option" data-exercise="angle-hold">
+      <h4>🏎️ Car Driving Game</h4>
+      <p>Stay on the road!</p>
+    </a>
+    <!-- Option 3: Prescription Mode -->
+    <div class="exercise-option" data-exercise="prescribed">
+      <!-- Controls for Prescription Mode -->
+      <div id="prescription-data-container" style="
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid var(--primary);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        color: var(--text);
+        font-family: 'Roboto', sans-serif;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+        <h4 style="margin-bottom: 20px; color: var(--primary);">Prescribed Exercises</h4>
+        <div id="prescription-data" style="font-size: 1rem; line-height: 1.8;">
+            <p><strong>Week 3</strong></p>
+            <p><strong>Threshold:</strong> 30°</p>
+            <p><strong>Angle Aim:</strong> 80-100°</p>
+            <p><strong>Flexions:</strong> 10 reps x 2 sets</p>
+        </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Fetch prescribed exercises from the Flask endpoint
+    async function fetchPrescribedExercises() {
+        try {
+            const response = await fetch('/prescribed_exercises');
+            const data = await response.json();
+
+            if (data.status === "success") {
+                const { threshold, angle_aim, flexions } = data.exercises;
+
+                // Populate the prescription data
+                const prescriptionDataDiv = document.getElementById('prescription-data');
+                prescriptionDataDiv.innerHTML = `
+                    <p><strong>Week 3</strong></p>
+                    <p><strong>Threshold:</strong> ${threshold}°</p>
+                    <p><strong>Angle Aim:</strong> ${angle_aim}</p>
+                    <p><strong>Flexions:</strong> ${flexions.reps} reps x ${flexions.sets} sets</p>
+                `;
+            } else {
+                throw new Error(data.message || "Failed to fetch prescribed exercises.");
+            }
+        } catch (error) {
+            console.error("Error fetching prescribed exercises:", error);
+            document.getElementById('prescription-data').innerHTML = `
+                <p style="color: var(--alert);">Error loading prescription data. Please try again later.</p>
+            `;
+        }
+    }
+
+    // Initialize the prescription data on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchPrescribedExercises();
+
+        // Add event listener to the "Refresh" button
+        document.getElementById('refresh-prescription-btn').addEventListener('click', () => {
+            fetchPrescribedExercises();
+        });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        const skipOpeningScreen = sessionStorage.getItem('skipOpeningScreen');
+
+        if (skipOpeningScreen === 'true') {
+            sessionStorage.removeItem('skipOpeningScreen'); // Clear the flag
+            // Skip the opening screen logic
+            document.getElementById('patient-modal').style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+  // -------------------------------
+  // Global constants and variables
+  // -------------------------------
+  const MAX_ANGLE = 180; // Maximum angle value for scaling rings
+  const ALERT_THRESHOLD = 135; // Renamed for clarity
+  const RING_RADIUS = 90; // Renamed for consistency
+  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  const overlay = document.getElementById('alert-overlay');
+  const holdRing = document.getElementById('hold-ring');
+
+  // Global variable for hold marker animation
+  let holdAnimationFrame = null;
+  let holdStartTime = null;  // Timestamp when hold time started (in ms)
+
+  // -------------------------------
+  // Position Toggle Logic
+  // -------------------------------
+  const positionToggle = document.getElementById('position-toggle');
+  const options = positionToggle.querySelectorAll('.position-option');
+  const outline = positionToggle.querySelector('.selection-outline');
+
+  // Initialize outline position
+  function updateOutline(selectedOption) {
+    const { offsetLeft: left, offsetWidth: width } = selectedOption;
+    outline.style.left = `${left}px`;
+    outline.style.width = `${width}px`;
+    outline.style.height = `${selectedOption.offsetHeight}px`;
+  }
+
+  // Set initial selection
+  let selectedOption = options[0];
+  selectedOption.classList.add('selected');
+  updateOutline(selectedOption);
+
+  // Handle clicks on position options
+  options.forEach(option => {
+    option.addEventListener('click', () => {
+      options.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      selectedOption = option;
+      updateOutline(selectedOption);
+    });
+  });
+
+  // Handle position toggle
+  document.querySelectorAll('.position-option').forEach(option => {
+    option.addEventListener('click', async () => {
+        const position = option.getAttribute('data-value'); // Get the selected position (sitting or lying)
+
+        try {
+            const response = await fetch('/set_position', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ position })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                console.log(`Position updated to: ${position}`);
+            } else {
+                console.error(`Failed to update position: ${data.message}`);
+            }
+        } catch (error) {
+            console.error(`Error updating position: ${error}`);
+        }
+    });
+});
+
+  // -------------------------------
+  // Progress Rings Initialization & Update
+  // -------------------------------
+  function initializeRing(ringElement) {
+    try {
+      const progressCircle = ringElement.querySelector('.progress-ring-circle:last-of-type');
+      if (!progressCircle) {
+        console.error('initializeRing: Could not find the progress circle element for', ringElement.id);
+        return;
+      }
+      progressCircle.style.strokeDasharray = `${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`;
+      progressCircle.style.strokeDashoffset = RING_CIRCUMFERENCE;
+      console.debug('[DEBUG] Initialized ring', ringElement.id);
+    } catch (error) {
+      console.error('Error in initializeRing:', error);
+    }
+  }
+  // Set initial progress for rings
+  function setRingProgress(ringElement, value) {
+    try {
+      const progress = Math.min(value / MAX_ANGLE, 1);
+      const offset = RING_CIRCUMFERENCE - (progress * RING_CIRCUMFERENCE);
+      const progressCircle = ringElement.querySelector('.progress-ring-circle:last-of-type');
+      if (progressCircle) {
+        progressCircle.style.strokeDashoffset = offset;
+        console.debug('[DEBUG] Updated progress for', ringElement.id, 'to offset:', offset);
+      }
+    } catch (error) {
+      console.error('Error in setRingProgress:', error);
+    }
+  }
+
+  // -------------------------------
+  // Modal & Session Start/Shutdown Logic
+  // -------------------------------
+  document.getElementById('start-btn').addEventListener('click', () => {
+    const patientName = document.getElementById('patient-name').value.trim();
+    const thresholdAngle = parseInt(document.getElementById('threshold-input').value);
+    const selectedPosition = document.querySelector('.position-option.selected').dataset.value;
+
+    if (!patientName) {
+      alert("Please enter a patient name.");
+      return;
+    }
+
+    console.log(`[INFO] Starting session for ${patientName} at ${thresholdAngle}° threshold in ${selectedPosition} position`);
+    // Hide modal
+    document.getElementById('patient-modal').style.display = 'none';
+
+    // Show custom threshold info if patient is "test"
+    if (patientName.toLowerCase() === 'test') {
+      document.getElementById('custom-threshold-info').style.display = 'block';
+    }
+
+    // Start session backend call
+    fetch('/start_session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patientName, thresholdAngle, selectedPosition })
+    }).catch(err => console.error('[DEBUG] Session start failed:', err));
+  });
+
+  // End session button handler
+  document.getElementById('end-session-btn').addEventListener('click', () => {
+    if (confirm("Are you sure you want to end this session?")) {
+      fetch('/shutdown', { method: 'POST' })
+      .then(res => res.ok ? alert("Session ended. Device shutting down.") : alert("Shutdown failed."))
+      .catch(err => console.error('[DEBUG] Shutdown error:', err));
+    }
+  });
+
+  // -------------------------------
+  // Alert and Hold Marker Animation
+  // -------------------------------
+  function triggerAlert(active) {
+    try {
+      overlay.style.display = active ? 'block' : 'none';
+      document.body.classList.toggle('alert-background', active);
+      if (active && navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+      console.debug('[DEBUG] Alert triggered:', active);
+    } catch (error) {
+      console.error('Error in triggerAlert:', error);
+    }
+  }
+  // animateHoldMarker function to rotate the hold marker
+  function animateHoldMarker() {
+    const marker = document.getElementById('hold-ring').querySelector('.hold-marker');
+    if (!marker) {
+      console.error('[DEBUG] animateHoldMarker: No hold marker found');
+      return;
+    }
+    const elapsed = Date.now() - holdStartTime;
+    const angle = (elapsed % 10000) / 10000 * 360;
+    marker.style.transform = `rotate(${angle}, 100, 100)`;
+    console.debug('[DEBUG] Hold marker angle updated to:', angle.toFixed(2));
+    holdAnimationFrame = requestAnimationFrame(animateHoldMarker);
+  }
+  // Start and stop hold marker animation based on hold time
+  function startHoldMarkerAnimation() {
+    if (!holdStartTime) {
+      holdStartTime = Date.now();
+      console.debug('[DEBUG] Hold marker animation started at:', holdStartTime);
+    }
+    if (!holdAnimationFrame) {
+      holdAnimationFrame = requestAnimationFrame(animateHoldMarker);
+    }
+  }
+  // Stop the hold marker animation
+  function stopHoldMarkerAnimation() {
+    if (holdAnimationFrame) {
+      cancelAnimationFrame(holdAnimationFrame);
+      holdAnimationFrame = null;
+      console.debug('[DEBUG] Hold marker animation stopped.');
+    }
+    holdStartTime = null;
+    const marker = document.getElementById('hold-ring').querySelector('.hold-marker');
+    if (marker) {
+      marker.style.transform = 'rotate(0, 100, 100)';
+      console.debug('[DEBUG] Hold marker reset to 0°.');
+    }
+  }
+  // Update the hold marker angle based on hold time
+  function updateHoldMarker(holdTime) {
+    try {
+      const angle = ((holdTime % 10) / 10) * 360;
+      const marker = holdRing.querySelector('.hold-marker');
+      if (marker) {
+        marker.setAttribute('transform', `rotate(${angle}, 100, 100)`);
+        console.debug('[DEBUG] Updated hold marker angle to:', angle);
+      }
+    } catch (error) {
+      console.error('Error in updateHoldMarker:', error);
+    }
+  }
+
+  // -------------------------------
+  // Data Handling and Periodic Updates
+  // -------------------------------
+  async function fetchData() {
+    try {
+      const [currentRes, historyRes] = await Promise.all([
+        fetch('/current_data'),
+        fetch('/history')
+      ]);
+
+      const current = await currentRes.json();
+      const history = await historyRes.json();
+
+      // Validate expected data properties
+      if (typeof current.current_angle !== 'number' ||
+          typeof current.max_angle !== 'number' ||
+          typeof current.hold_time !== 'number') {
+        console.error('Data format error: Missing expected properties in current data.', current);
+        return;
+      }
+
+      // Update progress rings
+      setRingProgress(document.getElementById('current-ring'), current.current_angle);
+      setRingProgress(document.getElementById('max-ring'), current.max_angle);
+
+      // Update display values
+      document.getElementById('current-angle').textContent = `${current.current_angle.toFixed(1)}°`;
+      document.getElementById('max-angle').textContent = `${current.max_angle.toFixed(1)}°`;
+      document.getElementById('hold-time').textContent = `${current.hold_time.toFixed(1)}s`;
+
+      // Update hold marker based on hold time
+      updateHoldMarker(current.hold_time);
+
+      // Update session history table
+      const tbody = document.getElementById('session-history');
+      if (Array.isArray(history)) {
+        tbody.innerHTML = history.map(session => `
+          <tr>
+            <td>${new Date(session.timestamp).toLocaleTimeString()}</td>
+            <td>${session.max_angle.toFixed(1)}°</td>
+            <td>${session.hold_time.toFixed(1)}s</td>
+            <td>${(session.stability * 100).toFixed(1)}%</td>
+            <td>${session.kfms.toFixed(1)}</td>
+          </tr>
+        `).join('');
+      } else {
+        console.error('History data format error: Expected an array.', history);
+      }
+
+      // Trigger alert if current angle exceeds threshold
+      triggerAlert(current.current_angle >= ALERT_THRESHOLD);
+
+      console.debug('[DEBUG] Data fetched and updated successfully.');
+
+      // Start or stop the hold marker animation based on hold_time
+      if (current.hold_time > 0) {
+        startHoldMarkerAnimation();
+      } else {
+        stopHoldMarkerAnimation();
+      }
+    } catch (error) {
+      console.error('[DEBUG] Update error in fetchData:', error);
+    }
+  }
+
+  // Initialize rings for current and max angle cards
+  initializeRing(document.getElementById('current-ring'));
+  initializeRing(document.getElementById('max-ring'));
+
+  // Start periodic data updates (every 50ms) and initial fetch
+  setInterval(fetchData, 50);
+  fetchData();
+
+  // -------------------------------
+  // Debug Logging Helper
+  // -------------------------------
+  function debugLog(message, data) {
+    console.debug('[DEBUG]', message, data || '');
+  }
+
+  // -------------------------------
+  // Patient Modal Logic
+  // -------------------------------
+  const modal = document.getElementById('patient-modal');
+  const startBtn = document.getElementById('start-btn');
+  const patientNameInput = document.getElementById('patient-name');
+  const customThresholdInfo = document.getElementById('custom-threshold-info');
+
+  startBtn.addEventListener('click', function() {
+    const patientName = patientNameInput.value.trim();
+    debugLog('Patient name entered:', patientName);
+    if (patientName === '') {
+      alert('Please enter a patient name.');
+      return;
+    }
+    modal.style.display = 'none';
+    if (patientName.toLowerCase() === 'test') {
+      customThresholdInfo.style.display = 'block';
+    }
+  });
+
+  // -------------------------------
+  // Exercise Panel & Interaction Logic
+  // -------------------------------
+  // Elements for the exercise panel and RHS exercise-selector button
+  const exercisePanel = document.getElementById('exercise-panel');
+  const exerciseSelector = document.querySelector('.exercise-selector');
+  const closeExercisePanelBtn = document.getElementById('close-exercise-panel');
+  const savePrescriptionBtn = document.getElementById('save-prescription');
+  const prescribedTargetInput = document.getElementById('prescribed-target');
+  const prescribedDurationInput = document.getElementById('prescribed-duration');
+
+  // Open and close the exercise panel
+  function openExercisePanel() {
+    exercisePanel.classList.add('active');
+  }
+  function closeExercisePanel() {
+    exercisePanel.classList.remove('active');
+  }
+
+  // Event listener: RHS button click opens the exercise panel
+  exerciseSelector.addEventListener('click', function() {
+    openExercisePanel();
+  });
+
+  // Event listener: Close button inside the exercise panel
+  closeExercisePanelBtn.addEventListener('click', function() {
+    closeExercisePanel();
+  });
+
+  // Prescription Mode Save button: save the preset values (currently logged and alerted)
+  savePrescriptionBtn.addEventListener('click', function() {
+    const targetAngle = prescribedTargetInput.value;
+    const duration = prescribedDurationInput.value;
+    console.log("Saved Prescription - Target Angle:", targetAngle, "°, Duration:", duration, "s");
+    alert('Prescription saved!');
+    // Further implementation can store these preferences locally or send to backend.
+  });
+
+  // -------------------------------
+  // Mobile Swipe Event Handling for Exercise Panel
+  // -------------------------------
+  let touchStartX = null;
+  const swipeThreshold = 50; // Minimum swipe distance in pixels
+
+  // Detect swipe starting near the right edge to open the panel
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches[0].clientX > window.innerWidth - 50) {
+      touchStartX = e.touches[0].clientX;
+    }
+  });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!touchStartX) return;
+    let touchCurrentX = e.touches[0].clientX;
+    let diffX = touchStartX - touchCurrentX;
+    if (diffX > swipeThreshold) {
+      openExercisePanel();
+      touchStartX = null; // Reset trigger
+    }
+  });
+
+  // Allow swipe-to-close within the panel (swipe LtR to close)
+  exercisePanel.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+  });
+  exercisePanel.addEventListener('touchmove', function(e) {
+    if (!touchStartX) return;
+    let touchCurrentX = e.touches[0].clientX;
+    let diffX = touchCurrentX - touchStartX;
+    if (diffX > swipeThreshold) {
+      closeExercisePanel();
+      touchStartX = null;
+    }
+  });
+
+  // -------------------------------
+  // Exercise Option Selection Handling
+  // -------------------------------
+  const exerciseOptions = document.querySelectorAll('.exercise-option');
+  exerciseOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      // Remove active state from all options
+      exerciseOptions.forEach(opt => opt.classList.remove('active-option'));
+      // Mark the selected exercise as active
+      option.classList.add('active-option');
+      const selectedExercise = option.getAttribute('data-exercise');
+      console.log("Selected exercise:", selectedExercise);
+      // game/exercise logic as needed
+      // alert if needed
+    });
+  });
+
+  // -------------------------------
+  // Integration with Live Data for the Exercise Panel
+  // -------------------------------
+  function updateLiveDataForExercises() {
+    fetch('/current_data')
+      .then(response => response.json())
+      .then(data => {
+        // Example: update a live angle display in the exercise panel if needed
+        // document.getElementById('live-angle-display').innerText = `Current Angle: ${data.current_angle}°`;
+        console.log("Live Data (Exercise Panel):", data);
+      })
+      .catch(error => console.error("Error fetching live data for exercises:", error));
+  }
+  // Poll the exercise live data every second
+  setInterval(updateLiveDataForExercises, 1000);
+
+  // Show or hide the "No Bluetooth" warning
+  if (!btConnected) {
+      document.getElementById('bt-warning').style.display = 'block';
+  }
+
+  // Fetch Bluetooth connection status from the /current_data endpoint
+  async function fetchBluetoothStatus() {
+    try {
+        const response = await fetch('/current_data');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const btWarning = document.getElementById('bt-warning');
+
+        if (data.bt_connected) {
+            btWarning.style.display = 'none'; // Hide the warning
+        } else {
+            btWarning.style.display = 'block'; // Show the warning
+        }
+    } catch (error) {
+        console.error(`Failed to fetch Bluetooth status: ${error}`);
+    }
+}
+
+// Fetch Bluetooth status periodically
+setInterval(fetchBluetoothStatus, 1000); // Check every second
+</script>
+
+</body>
+</html>

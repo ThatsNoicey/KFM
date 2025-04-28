@@ -1,0 +1,23 @@
+
+    flowchart TD
+        %% Define styles
+        classDef flask fill:#9f9,stroke:#333,stroke-width:2px;
+
+        %% Flask Web Server
+        A[Flask Web Server]:::flask --> B[Dashboard Endpoint]
+        A --> C[Real-Time Data Endpoint]
+        A --> D[Game 1 (Rocket Game)]
+        A --> E[Game 2 (Car Game)]
+        A --> F[Setup Endpoint]
+        A --> G[Shutdown Endpoint]
+        A --> H[Prescribed Exercises Endpoint]
+
+        %% Endpoint Details
+        B --> B1[Render Dashboard]
+        C --> C1[Provide Live Data]
+        D --> D1[Render Rocket Game]
+        E --> E1[Render Car Game]
+        F --> F1[Update Configuration]
+        G --> G1[Trigger Shutdown]
+        H --> H1[Provide Exercise Recommendations]
+    
