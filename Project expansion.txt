@@ -1,0 +1,168 @@
+// Next-Gen Physio Rehab Tracker - Project Scaffold & Implementation Plan
+
+/**
+ * 📁 Folder Structure (Full-Stack Monorepo)
+ */
+
+root/
+├── client/                    # React frontend (Vite or CRA)
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── utils/
+│   │   └── App.jsx
+│   ├── vite.config.js
+│   └── package.json
+│
+├── server/                    # Express + MongoDB backend
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── utils/
+│   └── index.js
+│
+├── .env
+├── README.md
+└── package.json (root with scripts to run client + server)
+
+
+/**
+ * ✅ MVP Features Checklist
+ */
+
+// Users & Auth
+[ ] Register/login as patient or physio
+[ ] Role-based access control (RBAC)
+[ ] JWT-based session management
+
+// Patient Dashboard
+[ ] View weekly rehab plan
+[ ] Submit pain level / exercise logs
+[ ] View graphs of progress
+
+// Physio Dashboard
+[ ] Assign/edit rehab plans to patients
+[ ] View patient compliance & trends
+[ ] Leave written feedback
+
+// Messaging & Notes
+[ ] Simple notes system for patient-physio
+[ ] Optional real-time messaging (future)
+
+// Simulated Sensor Data
+[ ] ROM, pain score, rep data simulation
+[ ] Weekly summary with trends
+
+
+/**
+ * 🛠️ Backend (Express + MongoDB)
+ */
+
+// User Schema (server/models/User.js)
+{
+  username: String,
+  email: String,
+  passwordHash: String,
+  role: { type: String, enum: ['patient', 'physio'] },
+  assignedPatients: [ObjectId], // Only if physio
+  createdAt: Date
+}
+
+// RehabPlan Schema (assigned by physio)
+{
+  patientId: ObjectId,
+  weekStart: Date,
+  exercises: [{ day: String, exercise: String, sets: Number, reps: Number }]
+}
+
+// Log Schema (submitted by patient)
+{
+  patientId: ObjectId,
+  date: Date,
+  completed: Boolean,
+  painLevel: Number,
+  rangeOfMotion: Number,
+  notes: String
+}
+
+// Feedback Schema
+{
+  physioId: ObjectId,
+  patientId: ObjectId,
+  message: String,
+  date: Date
+}
+
+
+/**
+ * 📊 Frontend - Page Concepts
+ */
+
+// Shared
+- Login / Register (Patient or Physio)
+- Auth Context for role control
+
+// Patient Views
+- Weekly Plan View
+- Submit Exercise Log (pain, ROM, completion)
+- Progress Charts (LineGraph.jsx)
+- Feedback & Notes Viewer
+
+// Physio Views
+- Patient List / Dashboard
+- Create/Edit Plans for Each
+- View Logs & Leave Feedback
+
+
+/**
+ * 📝 Documentation Plan (README.md)
+ */
+
+# Next-Gen Physio App
+
+A role-based rehabilitation tracker that allows patients to log progress and physios to monitor trends, assign plans, and communicate feedback.
+
+## Features
+- Secure login for patient & physio
+- Rehab plan assignment
+- Daily logs of ROM, pain, completion
+- Graphical feedback and progress insights
+- Future: wearable emulation, real-time messaging
+
+## Setup
+- `cd client && npm install`
+- `cd server && npm install`
+- Use `concurrently` to run both in dev mode
+
+```bash
+npm install concurrently
+npm run dev
+```
+
+## Tech Stack
+- Frontend: React + Tailwind
+- Backend: Express + MongoDB
+- Auth: JWT + Bcrypt
+- Charts: Recharts
+- Dev Tools: ESLint, Prettier, dotenv
+
+
+/**
+ * 🚀 Next Steps
+ */
+
+[ ] Set up user auth and routing
+[ ] Seed database with sample users & plans
+[ ] Build rehab plan form & log forms
+[ ] Add charting for patient progress
+[ ] Deploy on Render / Vercel
+[ ] Expand with simulated sensor inputs
+[ ] Implement real-time messaging (WebSockets)
+[ ] Add unit tests for critical components
+[ ] Write comprehensive API documentation
+[ ] Gather user feedback for future iterations
+[ ] Explore integration with wearable devices (future phase)

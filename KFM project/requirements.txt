@@ -1,0 +1,6 @@
+bleak
+reportlab
+matplotlib
+pandas
+numpy
+flask

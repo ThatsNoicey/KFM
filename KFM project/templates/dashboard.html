@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/static/logofavicon.png" type="image/png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Medical KFM Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Alert overlay for vibration and visual feedback -->
+  <div id="alert-overlay" class="alert-overlay"></div>
+  <div id="bt-warning" class="alert-overlay"> No Bluetooth </div>
+  
+  <div id="patient-modal" class="modal">
+    <div class="modal-content">
+        <h2>Enter Patient Info</h2>
+        <input type="text" id="patient-name" placeholder="Patient Name" />
+        <br />
+        <label for="threshold-input">Threshold (°):</label>
+        <input type="number" id="threshold-input" value="30" min="0" max="180" />
+        <br /><br />
+        <label>Position:</label>
+        <div class="position-toggle" id="position-toggle">
+          <div class="position-option" data-value="sitting">
+              <img src="static/sitting.png" alt="Sitting Position">
+          </div>
+          <div class="position-option" data-value="lying">
+              <img src="static/lying.png" alt="Lying Position">
+          </div>
+          <div class="selection-outline"></div>
+        </div>
+        <br /><br />
+        <button id="start-btn">Start</button>        
+    </div>
+  </div>
+  
+  <!-- Optional custom threshold info (shown only if patient name is "test") -->
+  <div id="custom-threshold-info" class="custom-threshold-info" style="display:none;">
+    <img src="static/logo.png" alt="Logo" style="height: 90px; vertical-align: middle; margin-right: 40px;" />
+    <strong>Custom Threshold:</strong> 30° (suggested)
+  </div>
+  
+  <!-- Main status panel -->
+  <div class="status-panel">
+    <!-- Current Angle Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="current-ring">
+          <circle class="gold-range" stroke="#4169E1" stroke-width="18" fill="none" 
+              r="90" cx="100" cy="100" 
+              stroke-dasharray="31.4 534.08"  
+              stroke-dashoffset="-267.76" />
+          <!-- Background circle -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Foreground progress circle -->
+          <circle class="progress-ring-circle" stroke="var(--primary)" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Threshold marker at 135° -->
+          <line class="threshold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(315, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="current-angle">0°</div>
+          <div class="metric-label">Current Angle</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Max Angle Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="max-ring">
+          <!-- Background circle -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Foreground progress circle -->
+          <circle class="progress-ring-circle" stroke="var(--secondary)" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Threshold marker at 135° -->
+          <line class="threshold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(135, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="max-angle">0°</div>
+          <div class="metric-label">Max Angle</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hold Time Card -->
+    <div class="status-card">
+      <div class="ring-container">
+        <svg class="progress-ring" id="hold-ring">
+          <!-- Background circle in light grey -->
+          <circle class="progress-ring-circle" stroke="#eee" stroke-width="8" r="90" cx="100" cy="100" />
+          <!-- Hold time ring is permanently black; no progress update needed -->
+          <circle class="progress-ring-circle" stroke="black" stroke-width="8" r="90" cx="100" cy="100" fill="none" />
+          <!-- Rotating hold time marker; initially at 0 degrees -->
+          <line class="hold-marker" x1="100" y1="10" x2="100" y2="25" transform="rotate(0, 100, 100)" />
+        </svg>
+        <div class="ring-labels">
+          <div class="current-value" id="hold-time">0s</div>
+          <div class="metric-label">Hold Time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Session history table -->
+  <div class="session-table">
+    <table>
+      <thead>
+        <tr>
+          <th>TIME</th>
+          <th>MAX°</th>
+          <th>HOLD</th>
+          <th>STABILITY</th>
+          <th>KFMS</th>
+        </tr>
+      </thead>
+      <tbody id="session-history">
+        <!-- Data will populate here -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Exercise selector button -->
+  <button class="exercise-selector">EXERCISE TYPE ▾</button>
+
+  <!-- End Session Button -->
+    <button id="end-session-btn" style="
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    background: var(--alert);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 2rem;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 1000;
+    ">
+    END SESSION
+    </button>
+    <!-- Exercise Panel (Slide-In UI) -->
+<div id="exercise-panel" class="exercise-panel">
+  <button id="close-exercise-panel" class="close-exercise-panel">&times;</button>
+  <h3>Exercises &amp; Games</h3>
+  <div id="exercise-options">
+    <!-- Option 1: Angle Hold Challenge -->
+    <a href="/game-1" class="exercise-option" data-exercise="angle-hold">
+      <h4>🚀 Rocket Launch Game</h4>
+      <p>Hold 90° to charge engines!<br>Return to 0° for liftoff</p>
+    </a>
+    <!-- Option 2: Target Angle Match -->
+    <a href="/game-2" class="exercise-option" data-exercise="angle-hold">
+      <h4>🏎️ Car Driving Game</h4>
+      <p>Stay on the road!</p>
+    </a>
+    <!-- Option 3: Prescription Mode -->
+    <div class="exercise-option" data-exercise="prescribed">
+      <!-- Controls for Prescription Mode -->
+      <div id="prescription-data-container" style="
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid var(--primary);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        color: var(--text);
+        font-family: 'Roboto', sans-serif;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+        <h4 style="margin-bottom: 20px; color: var(--primary);">Prescribed Exercises</h4>
+        <div id="prescription-data" style="font-size: 1rem; line-height: 1.8;">
+            <p><strong>Week 3</strong></p>
+            <p><strong>Threshold:</strong> 30°</p>
+            <p><strong>Angle Aim:</strong> 80-100°</p>
+            <p><strong>Flexions:</strong> 10 reps x 2 sets</p>
+        </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

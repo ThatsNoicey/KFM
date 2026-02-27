@@ -1,0 +1,459 @@
+:root {
+      --primary: #2A9D8F;
+      --secondary: #264653;
+      --alert: #E76F51;
+      --background: #F8F9FA;
+      --text: #2B2D42;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--background);
+      font-family: 'Roboto', sans-serif;
+      transition: background 0.5s ease;
+    }
+
+    .alert-background {
+      background: linear-gradient(45deg, rgba(231,111,81,0.1) 0%, transparent 100%);
+    }
+
+    .alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--alert);
+      opacity: 0;
+      animation: pulse 500ms infinite;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.1; }
+    }
+
+    /* Modal styles for the opening patient name screen */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .modal-content input {
+      width: 80%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .modal-content button {
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 0.5rem;
+    }
+    
+    .status-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .status-panel {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+      }
+    }
+
+    .status-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .progress-ring-circle {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    /* Marker style for threshold indicators */
+    .threshold-marker {
+      stroke: red;
+      stroke-width: 4;
+    }
+
+    /* Hold time marker always in black */
+    .hold-marker {
+      stroke: black;
+      stroke-width: 4;
+      transition: transform 0.5s ease-out;
+    }
+
+    .ring-labels {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .current-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .metric-label {
+      font-size: 1.1rem;
+      color: var(--secondary);
+      opacity: 0.8;
+    }
+
+    .session-table {
+      max-height: 50vh;
+      overflow-y: auto;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      margin: 2rem auto;
+      width: 90%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+
+    .exercise-selector {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 2rem;
+      border: none;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    
+    /* Custom threshold indicator text if patient name is 'test' */
+    .custom-threshold-info {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--alert);
+      margin-bottom: 1rem;
+    }
+
+    .setup-overlay {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(5px);
+    }
+
+    .setup-card {
+        background: var(--background);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .setup-header {
+        font-size: 1.8rem;
+        color: var(--secondary);
+        margin-bottom: 2rem;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .position-toggle {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        justify-content: center;
+    }
+
+    .position-option {
+        flex: 1;
+        padding: 1.2rem;
+        border-radius: 1rem;
+        background: white;
+        border: 2px solid #eee;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-weight: 500;
+        color: var(--secondary);
+    }
+
+    .position-option.active {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 5px 15px rgba(42,157,143,0.2);
+    }
+
+    .threshold-control {
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .threshold-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #eee;
+        outline: none;
+        margin: 1rem 0;
+    }
+
+    .threshold-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        cursor: pointer;
+        border: 4px solid white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .threshold-value {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.8rem;
+        font-weight: 600;
+        color: var(--secondary);
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .threshold-value:hover {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+    }
+
+    .threshold-value input {
+        width: 60px;
+        border: none;
+        background: transparent;
+        font: inherit;
+        color: inherit;
+        text-align: center;
+        display: none;
+    }
+    .gold-range {
+      stroke-width: 18; 
+      opacity: 0.3;
+      filter: drop-shadow(0 0 5px rgba(208, 255, 0, 0.783));
+      stroke-linecap: round;
+    }
+
+    .progress-ring {
+      position: relative;
+      z-index: 1;
+    }
+    .position-toggle {
+        display: flex;
+        gap: 2rem;
+        margin: 2rem 0;
+        position: relative;
+        justify-content: center; 
+        align-items: center;
+    }
+
+    .position-option {
+        position: relative;
+        padding: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .position-option img {
+        width: 80px;
+        height: 80px;
+        display: block;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .selection-outline {
+        position: absolute;
+        border: 2px solid #000;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+    .exercise-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1500;
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: 'Roboto', sans-serif;
+    }
+
+    .exercise-panel.active {
+      transform: translateX(0);
+    }
+
+    .close-exercise-panel {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      color: var(--secondary);
+    }
+
+    .exercise-panel h3 {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    .exercise-option {
+      display: block; /* Make the <a> tag behave like a block element */
+      text-decoration: none; /* Remove underline from links */
+      border: 1px solid #eee;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      background: white; /* Add a background color */
+      text-align: center; /* Center-align the text */
+      color: var(--secondary); /* Use the secondary color for text */
+    }
+      
+    .exercise-option:hover {
+      background: var(--background);
+    }
+
+    .exercise-option h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--secondary);
+    }
+
+    .exercise-option p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .prescribed-controls {
+      margin-top: 0.5rem;
+    }
+
+    .prescribed-controls label {
+      font-size: 0.85rem;
+      color: var(--secondary);
+    }
+
+    .prescribed-controls input {
+      width: 60px;
+      padding: 0.2rem;
+      margin-right: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 0.3rem;
+    }
+
+    .prescribed-controls button {
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    #bt-warning {
+        position: fixed; /* Ensure it stays in the viewport */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px; /* Larger font size for emphasis */
+        color: blue; /* Blue text color */
+        font-weight: bold;
+        text-align: center;
+        display: none; /* Hidden by default */
+        z-index: 2000; /* Ensure it appears above everything else */
+        background: rgba(255, 255, 255, 0.8); 
+        padding: 20px; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
+    }
